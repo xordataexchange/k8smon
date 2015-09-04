@@ -23,6 +23,7 @@ docker run -d -e STATSD_SERVICE_HOST=127.0.0.1 -e STATSD_SERVICE_PORT=8125 -e KU
 ```
 ## Building
 k8smon requires [gb](http://getgb.io)
+
 Clone the repository, and type `gb build`
 
 
