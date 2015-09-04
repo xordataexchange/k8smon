@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: k8smon
+  namespace: default
+  labels:
+    component: k8smon
+spec:
+  replicas: 1
+  selector:
+    component: k8smon
+  template:
+    metadata:
+      labels:
+        component: k8smon
+    spec:
+      containers:
+      - name: k8smon
+        image: bketelsen/k8smon:latest
+        env:
+        - name: STATSD_SERVICE_HOST
+          value: "statsd.default.svc.kubernetes.local"
+        - name: STATSD_SERVICE_PORT
+          value: "8125"
+        - name: KUBERNETES_SERVICE_HOST
+          value: "10.0.10.10"
+        - name: KUBERNETES_SERVICE_PORT
+          value: "8080"
+        - name: KUBERNETES_SERVICE_PROTO
+          value: "http"
