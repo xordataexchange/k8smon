@@ -22,7 +22,7 @@ func main() {
 	logger := logrus.WithFields(logrus.Fields{
 		"applicationname": appname,
 	})
-	var k8shost, k8sport, k8sproto string
+	var k8shost, k8sport, k8sproto, prefix string
 	var statsdhost, statsdport string
 
 	if k8shost = os.Getenv("KUBERNETES_SERVICE_HOST"); k8shost == "" {
@@ -40,6 +40,9 @@ func main() {
 	if statsdport = os.Getenv("STATSD_SERVICE_PORT"); statsdport == "" {
 		logger.Panic("Must Supply STATSD_SERVICE_PORT")
 	}
+	if prefix = os.Getenv("STATSD_PREFIX"); prefix == "" {
+		prefix = "k8smon"
+	}
 
 	k8s := fmt.Sprintf("%s://%s:%s", k8sproto, k8shost, k8sport)
 	logger.Infof("Connecting to Kubernetes Master: %s", k8s)
@@ -56,7 +59,7 @@ func main() {
 
 	sd := fmt.Sprintf("%s:%s", statsdhost, statsdport)
 	logger.Infof("Connecting to statsd: %s", sd)
-	statsdclient, err = statsd.NewClient(sd, "k8smon")
+	statsdclient, err = statsd.NewClient(sd, prefix)
 	if err != nil {
 		logger.Panic("Unable to connect to Kubernetes Master", err)
 	}
