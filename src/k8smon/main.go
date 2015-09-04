@@ -15,11 +15,12 @@ import (
 
 var k8sclient *unversioned.Client
 var statsdclient statsd.Statter
+var logger *logrus.Entry
 
 func main() {
 	appname := path.Base(os.Args[0])
 	logrus.SetFormatter(&logrus.JSONFormatter{})
-	logger := logrus.WithFields(logrus.Fields{
+	logger = logrus.WithFields(logrus.Fields{
 		"applicationname": appname,
 	})
 	var k8shost, k8sport, k8sproto, prefix string
@@ -61,7 +62,7 @@ func main() {
 	logger.Infof("Connecting to statsd: %s", sd)
 	statsdclient, err = statsd.NewClient(sd, prefix)
 	if err != nil {
-		logger.Panic("Unable to connect to Kubernetes Master", err)
+		logger.Panic("Unable to connect to statsd", err)
 	}
 	for {
 		CountInstances()
@@ -72,7 +73,9 @@ func main() {
 func CountInstances() {
 	list, _ := k8sclient.ReplicationControllers(api.NamespaceDefault).List(kSelector.Everything())
 	for _, i := range list.Items {
-		statsdclient.Gauge(i.ObjectMeta.Name, int64(i.Status.Replicas), 1.0)
+		if err := statsdclient.Gauge(i.ObjectMeta.Name, int64(i.Status.Replicas), 1.0); err != nil {
+			logger.Error("Error publishing metric :", err)
+		}
 	}
 
 }
